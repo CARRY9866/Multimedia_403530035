@@ -1,0 +1,237 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<title>計算機</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+	<!-- Latest compiled JavaScript -->
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+	<style>
+		*{
+			font-size:30px;
+		}
+		button{
+		
+		}
+		#display{
+			border:1px #b4fdbf solid;
+			background-color:#d6fedc;
+			margin:0px 10px;
+			border-radius:10px;
+		}
+		#lastInput,#nowInput{
+			height:70px;
+			line-height:70px;
+			text-align:right;
+			padding:0px 20px;
+			font-size:50px;
+		}
+		.buttons{
+			width:100%;
+			margin-top:20px;
+		}
+		button{
+			width:80%;
+			margin:10px auto;
+			display:block;
+			height:100px;
+			background-color:#65bda5;
+			border-radius:10px;
+			border-width: 2px 9px 9px 2px !important; 
+			border: #45a188 solid;
+		}
+		
+		button:active{
+			background-color:#45a188;
+		}
+		#calculateBody{
+			background-color:#65bda5;
+			margin-top:50px;
+			padding:50px 20px 20px 20px;
+			border-radius:10px;
+			border-width: 0px 10px 10px 0px !important; 
+			border: #45a188 solid;
+		}
+		body{
+			background-color:#f1f1f1;
+		}
+	</style>
+</head>
+<body>
+<div id='calculateBody' class='container'>
+
+	<div id='display'>
+		<div id ='lastInput'></div>
+		<div id ='nowInput'>0</div>
+	</div>
+
+
+	<table class='buttons'>
+		<tr>
+			<td></td>
+			<td></td>
+			
+			<td colspan='2'><button type='button' onclick='reset()' style='width:90%;'>c</button></td>
+		</tr>
+		<tr>
+			<td><button type='button' class='numbers'>7</button></td>
+			<td><button type='button' class='numbers'>8</button></td>
+			<td><button type='button' class='numbers'>9</button></td>
+			<td><button type='button' class='operator'>÷</button></td>
+		</tr>
+		<tr>
+			<td><button type='button' class='numbers'>4</button></td>
+
+			<td><button type='button' class='numbers'>5</button></td>
+
+			<td><button type='button' class='numbers'>6</button></td>
+
+			<td><button type='button' class='operator'>×</button></td>
+		</tr>
+		<tr>
+			<td><button type='button' class='numbers'>1</button></td>
+			<td><button type='button' class='numbers'>2</button></td>
+			<td><button type='button' class='numbers'>3</button></td>
+			<td><button type='button 'class='operator'>-</button></td>
+		</tr>
+		<tr>
+			<td><button type='button' class='numbers'>.</button></td>
+			<td><button type='button' class='numbers'>0</button></td>
+			<td><button type='button' class='equal'>=</button></td>
+			<td><button type='button' class='operator'>+</button></td>
+		</tr>
+	</table>
+</div>
+
+	<script>
+	var number1=null;
+	var number2=null;
+	var result;
+	var operator=null;
+	var lastButton='n';
+	var strNumber='0';
+	var saveText;
+	
+	function reset(){
+		number1=null;
+		number2=null;
+		result=null;
+		operator=null;
+		lastButton='n';
+		strNumber='0';
+		saveText='';
+		$('#nowInput').text(strNumber);
+	}
+	function calculate(){
+		$('#lastInput').text('');
+		result=null;
+		switch(operator){
+			case '+':
+				result=number1+number2;
+				break;
+			case '-':
+				result=number1-number2;
+				break;
+			case '×':
+				result=number1*number2;
+				break;
+			case '÷':
+				if(number2==0){
+					reset();
+					alert('不可以除以零');
+					return;
+				}
+				result=number1/number2;
+				break;
+			default:
+				break;
+
+		}
+		
+		strNumber=result;
+		$('#nowInput').text(strNumber);
+		
+	}
+	
+	$('.numbers').click(function(){
+	console.log(lastButton);
+		if(lastButton=='e'){
+			number1=null;
+			number2=null;
+			//重新開始
+		}
+		if(lastButton!='n'){
+		strNumber='0';
+		}
+		var buttonValue=$(this).text();
+		if(strNumber=='0'&&buttonValue!='.'){
+			strNumber=buttonValue;
+		}
+		else{
+			//不是零or點點
+			strNumber+=buttonValue;
+		}
+
+		$('#nowInput').text(strNumber);
+		lastButton='n';
+	});
+	$('.operator').click(function(){
+			//number1沒有設定
+		if(!number1){
+			number1=parseFloat(strNumber);
+			operator=$(this).text();
+			$('#lastInput').text($('#lastInput').text()+strNumber+operator);
+			
+		}
+		else{
+			if(lastButton=='o'){
+				operator=$(this).text();
+				var lastText=$('#lastInput').text();
+				$('#lastInput').text(lastText.substring(0,lastText.length-1)+operator);
+			}
+			else if(lastButton=='e'){
+				operator=$(this).text();
+				number1=result;
+				$('#lastInput').text($('#lastInput').text()+number1+operator);	
+			}
+			else{
+				//靠北也只剩數字齁
+				number2=parseFloat(strNumber);
+				saveText=$('#lastInput').text()+number2;
+				calculate();
+				operator=$(this).text();
+				number1=result
+				$('#lastInput').text(saveText+operator);
+				
+
+			}
+		}
+		lastButton='o';
+	});
+	$('.equal').click(function(){
+		if(number1){
+			if(lastButton=='n'){
+			//還有在按數字
+				number2=parseFloat(strNumber);
+				calculate();
+			}
+			else if(lastButton=='o'){
+					number2=number1;
+					calculate();
+					
+			}
+			else if(lastButton =='e'){
+				number1=result;
+				calculate();
+			}
+			else{
+
+			}
+		}
+		lastButton='e';
+	});
+	
+	</script>
+</body>
+</html>
