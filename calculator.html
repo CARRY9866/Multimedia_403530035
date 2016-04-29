@@ -71,8 +71,8 @@
 		<tr>
 			<td></td>
 			<td></td>
-			
-			<td colspan='2'><button type='button' onclick='reset()' style='width:90%;'>c</button></td>
+			<td><button type='button' class='sqrt'>√</button></td>
+			<td><button type='button' onclick='reset()' >c</button></td>
 		</tr>
 		<tr>
 			<td><button type='button' class='numbers'>7</button></td>
@@ -111,7 +111,9 @@
 	var operator=null;
 	var lastButton='n';
 	var strNumber='0';
-	var saveText;
+	var saveText;	
+	
+	
 	
 	function reset(){
 		number1=null;
@@ -122,48 +124,103 @@
 		strNumber='0';
 		saveText='';
 		$('#nowInput').text(strNumber);
+		$('#lastInput').text('');
 	}
 	function calculate(){
 		$('#lastInput').text('');
-		result=null;
 		switch(operator){
 			case '+':
-				result=number1+number2;
+				//result=number1+number2;
+				var r1, r2, m, c;
+				try { r1 = number1.toString().split(".")[1].length } catch (e) { r1 = 0 }
+				try { r2 = number2.toString().split(".")[1].length } catch (e) { r2 = 0 }
+				c = Math.abs(r1 - r2);
+				m = Math.pow(10, Math.max(r1, r2))
+				if (c > 0) {
+					var cm = Math.pow(10, c);
+					if (r1 > r2) {
+						number1 = Number(number1.toString().replace(".", ""));
+						number2 = Number(number2.toString().replace(".", "")) * cm;
+					}
+					else {
+						number1 = Number(number1.toString().replace(".", "")) * cm;
+						number2 = Number(number2.toString().replace(".", ""));
+					}
+				}
+				else {
+					number1 = Number(number1.toString().replace(".", ""));
+					number2 = Number(number2.toString().replace(".", ""));
+				}
+				result= (number1 + number2) / m;
 				break;
 			case '-':
-				result=number1-number2;
+				//result=number1-number2;
+				var r1,r2,m,n;
+　　			try{r1=number1.toString().split(".")[1].length}catch(e){r1=0}
+　　			try{r2=number2.toString().split(".")[1].length}catch(e){r2=0}
+　				m=Math.pow(10,Math.max(r1,r2));
+　　 			n=(r1>=r2)?r1:r2;
+　　			result=((number1*m-number2*m)/m).toFixed(n);
 				break;
 			case '×':
-				result=number1*number2;
+				//result=number1*number2;
+				var m = 0, s1 = number1.toString(), s2 = number2.toString();
+				try { m += s1.split(".")[1].length } catch (e) { }
+				try { m += s2.split(".")[1].length } catch (e) { }
+				result=Number(s1.replace(".", "")) * Number(s2.replace(".", "")) / Math.pow(10, m);
 				break;
 			case '÷':
-				if(number2==0){
-					reset();
-					alert('不可以除以零');
-					return;
+				//result=number1/number2;
+				var t1 = 0, t2 = 0, r1, r2;
+				try { t1 = number1.toString().split(".")[1].length } catch (e) { }
+				try { t2 = number2.toString().split(".")[1].length } catch (e) { }
+				with (Math) {
+				r1 = Number(number1.toString().replace(".", ""));
+				r2 = Number(number2.toString().replace(".", ""));
+				result= (r1 / r2) * pow(10, t2 - t1);
 				}
-				result=number1/number2;
 				break;
 			default:
 				break;
 
 		}
-		
+
 		strNumber=result;
 		$('#nowInput').text(strNumber);
 		
 	}
+	function checkSqrt(str){
+		var a = str.split('');
+		var a =a.filter(function(e){
+			for(var i=0;i<10;i++){
+				if(i==e||e==')'){
+					return false;
+				}			
+			}
+			return true
+		});
+		console.log(a);
+		return a[a.length-1]=='√';
+	}
 	
 	$('.numbers').click(function(){
-	console.log(lastButton);
+		if((lastButton=='n'&&checkSqrt($('#lastInput').text())))
+		{
+			$('#lastInput').text(function(i,prev){
+				return prev.substring(0,prev.lastIndexOf('√'));
+			})
+			strNumber='0';
+		}
+		
 		if(lastButton=='e'){
 			number1=null;
 			number2=null;
 			//重新開始
 		}
 		if(lastButton!='n'){
-		strNumber='0';
+			strNumber='0';
 		}
+
 		var buttonValue=$(this).text();
 		if(strNumber=='0'&&buttonValue!='.'){
 			strNumber=buttonValue;
@@ -176,12 +233,20 @@
 		$('#nowInput').text(strNumber);
 		lastButton='n';
 	});
+	
 	$('.operator').click(function(){
 			//number1沒有設定
 		if(!number1){
 			number1=parseFloat(strNumber);
 			operator=$(this).text();
-			$('#lastInput').text($('#lastInput').text()+strNumber+operator);
+			$('#lastInput').text(function(i,prev){
+				if(checkSqrt(prev)){
+					return prev+operator;
+				}
+				else{
+					return strNumber+operator
+				}
+			});
 			
 		}
 		else{
@@ -192,17 +257,26 @@
 			}
 			else if(lastButton=='e'){
 				operator=$(this).text();
-				number1=result;
-				$('#lastInput').text($('#lastInput').text()+number1+operator);	
+				number1=parseFloat(strNumber);
+				$('#lastInput').text(number1+operator);
 			}
 			else{
 				//靠北也只剩數字齁
 				number2=parseFloat(strNumber);
-				saveText=$('#lastInput').text()+number2;
+				saveText=$('#lastInput').text();
 				calculate();
 				operator=$(this).text();
-				number1=result
+				number1=result;
 				$('#lastInput').text(saveText+operator);
+				$('#lastInput').text(function(i,prev){
+					if(checkSqrt(saveText)){
+						return saveText+operator;
+					}
+					else{
+						return saveText+number2+operator;
+					}
+					
+				})
 				
 
 			}
@@ -210,7 +284,7 @@
 		lastButton='o';
 	});
 	$('.equal').click(function(){
-		if(number1){
+		if(number1||number1==0){
 			if(lastButton=='n'){
 			//還有在按數字
 				number2=parseFloat(strNumber);
@@ -225,13 +299,25 @@
 				number1=result;
 				calculate();
 			}
-			else{
-
-			}
 		}
 		lastButton='e';
 	});
 	
+	$('.sqrt').click(function(){
+
+		var origin=strNumber;
+		strNumber=Math.sqrt(strNumber);
+		$('#lastInput').text(function(i,prev){
+			if(checkSqrt(prev)){
+				return prev.substring(0,prev.lastIndexOf('√'))+'√('+prev.substring(prev.lastIndexOf('√'))+')';
+			}
+			else{
+				return prev+'√'+origin
+			}
+		})
+		$('#nowInput').text(strNumber);
+		lastButton='n';
+	})
 	</script>
 </body>
 </html>
